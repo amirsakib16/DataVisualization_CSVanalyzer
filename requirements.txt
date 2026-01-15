@@ -1,5 +1,7 @@
-flask
+Flask==3.0.0
 pandas
-numpy
-matplotlib
-seaborn
+numpy==1.26.2
+matplotlib==3.8.2
+seaborn==0.13.0
+Werkzeug==3.0.1
+gunicorn==21.2.0
