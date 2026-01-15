@@ -1,13 +1,15 @@
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, jsonify
 import os
 import sys
+import io
+import base64
 
 # Set matplotlib backend BEFORE importing pyplot
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# Now import other libraries
+# Import other libraries
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -17,35 +19,34 @@ warnings.filterwarnings('ignore')
 
 # Set environment variables for matplotlib
 os.environ['MPLCONFIGDIR'] = '/tmp/matplotlib'
-plt.ioff()  # Turn off interactive mode
+plt.ioff()
 
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 
-# Get absolute paths
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-OUTPUT_DIR = os.path.join(STATIC_DIR, 'outputs')
+# For Vercel serverless - use /tmp directory
 TEMP_DIR = '/tmp/matplotlib'
+os.makedirs(TEMP_DIR, exist_ok=True)
 
-# Create necessary directories with error handling
-for directory in [STATIC_DIR, OUTPUT_DIR, TEMP_DIR]:
-    try:
-        os.makedirs(directory, exist_ok=True)
-        os.chmod(directory, 0o777)  # Ensure write permissions
-    except Exception as e:
-        print(f"Warning: Could not create {directory}: {e}")
+def generate_plot_base64(fig):
+    """Convert matplotlib figure to base64 string for inline display"""
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', dpi=100, bbox_inches='tight', facecolor='white')
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close(fig)
+    buf.close()
+    return f"data:image/png;base64,{img_base64}"
 
-def generate_visualizations(df, output_dir):
+def generate_visualizations(df):
     """Generate all visualizations from the dataframe"""
     plots = []
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     try:
         # Force matplotlib to use Agg backend
         plt.switch_backend('Agg')
         
-        # Set style with white background
+        # Set style
         sns.set_style("whitegrid")
         plt.rcParams['figure.facecolor'] = 'white'
         plt.rcParams['axes.facecolor'] = 'white'
@@ -63,7 +64,7 @@ def generate_visualizations(df, output_dir):
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
     
-    print(f"Found {len(numeric_cols)} numeric columns and {len(categorical_cols)} categorical columns")
+    print(f"Found {len(numeric_cols)} numeric and {len(categorical_cols)} categorical columns")
     
     # 1. Correlation Heatmap
     if len(numeric_cols) >= 2:
@@ -75,12 +76,9 @@ def generate_visualizations(df, output_dir):
                        cbar_kws={"shrink": 0.8}, ax=ax)
             ax.set_title('Correlation Heatmap', fontsize=16, fontweight='bold', pad=20)
             plt.tight_layout()
-            filename = f'heatmap_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('Correlation Heatmap', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('Correlation Heatmap', img_data))
+            print(f"Generated: Correlation Heatmap")
         except Exception as e:
             print(f"Error generating heatmap: {e}")
     
@@ -101,12 +99,9 @@ def generate_visualizations(df, output_dir):
             ax.legend(fontsize=10)
             ax.grid(axis='y', alpha=0.3)
             plt.tight_layout()
-            filename = f'histogram_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('Distribution Histogram', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('Distribution Histogram', img_data))
+            print(f"Generated: Distribution Histogram")
         except Exception as e:
             print(f"Error generating histogram: {e}")
     
@@ -121,12 +116,9 @@ def generate_visualizations(df, output_dir):
             plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
             ax.grid(axis='y', alpha=0.3)
             plt.tight_layout()
-            filename = f'boxplot_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('Box Plot', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('Box Plot', img_data))
+            print(f"Generated: Box Plot")
         except Exception as e:
             print(f"Error generating boxplot: {e}")
     
@@ -136,8 +128,7 @@ def generate_visualizations(df, output_dir):
             fig, ax = plt.subplots(figsize=(10, 8))
             x_col, y_col = numeric_cols[0], numeric_cols[1]
             colors = np.random.rand(len(df))
-            sizes = 50
-            scatter = ax.scatter(df[x_col], df[y_col], c=colors, s=sizes, 
+            scatter = ax.scatter(df[x_col], df[y_col], c=colors, s=50, 
                        cmap='viridis', alpha=0.6, edgecolors='black', linewidth=0.5)
             plt.colorbar(scatter, ax=ax, label='Color Scale')
             ax.set_title(f'Scatter Plot: {x_col} vs {y_col}', fontsize=16, fontweight='bold', pad=20)
@@ -145,12 +136,9 @@ def generate_visualizations(df, output_dir):
             ax.set_ylabel(y_col, fontsize=12)
             ax.grid(True, alpha=0.3)
             plt.tight_layout()
-            filename = f'scatter_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('Scatter Plot', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('Scatter Plot', img_data))
+            print(f"Generated: Scatter Plot")
         except Exception as e:
             print(f"Error generating scatter plot: {e}")
     
@@ -173,12 +161,9 @@ def generate_visualizations(df, output_dir):
                 ax.text(bar.get_x() + bar.get_width()/2., height,
                         f'{int(height)}', ha='center', va='bottom', fontsize=10)
             plt.tight_layout()
-            filename = f'barchart_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('Bar Chart', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('Bar Chart', img_data))
+            print(f"Generated: Bar Chart")
         except Exception as e:
             print(f"Error generating bar chart: {e}")
     
@@ -195,12 +180,9 @@ def generate_visualizations(df, output_dir):
             ax.set_ylabel(col, fontsize=12)
             ax.grid(True, alpha=0.3)
             plt.tight_layout()
-            filename = f'lineplot_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('Line Plot', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('Line Plot', img_data))
+            print(f"Generated: Line Plot")
         except Exception as e:
             print(f"Error generating line plot: {e}")
     
@@ -217,12 +199,9 @@ def generate_visualizations(df, output_dir):
             ax.set_ylabel('Values', fontsize=12)
             ax.grid(axis='y', alpha=0.3)
             plt.tight_layout()
-            filename = f'violin_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('Violin Plot', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('Violin Plot', img_data))
+            print(f"Generated: Violin Plot")
         except Exception as e:
             print(f"Error generating violin plot: {e}")
     
@@ -239,12 +218,9 @@ def generate_visualizations(df, output_dir):
             ax.legend()
             ax.grid(True, alpha=0.3)
             plt.tight_layout()
-            filename = f'kde_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-            plots.append(('KDE Plot', filename))
-            print(f"Generated: {filename}")
+            img_data = generate_plot_base64(fig)
+            plots.append(('KDE Plot', img_data))
+            print(f"Generated: KDE Plot")
         except Exception as e:
             print(f"Error generating KDE plot: {e}")
     
@@ -281,7 +257,7 @@ def analyze():
         
         # Generate visualizations
         print("Generating visualizations...")
-        plots = generate_visualizations(df, OUTPUT_DIR)
+        plots = generate_visualizations(df)
         print(f"Generated {len(plots)} plots successfully")
         
         # Get basic stats
@@ -306,38 +282,16 @@ def analyze():
         traceback.print_exc()
         return jsonify({'success': False, 'error': f'Server error: {str(e)}'}), 500
 
-@app.route('/download/<filename>')
-def download(filename):
-    try:
-        filepath = os.path.join(OUTPUT_DIR, filename)
-        if not os.path.exists(filepath):
-            return jsonify({'error': 'File not found'}), 404
-        return send_file(filepath, as_attachment=True)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-if __name__ == '__main__':
+# For Vercel serverless
+if __name__ != '__main__':
+    # This is for Vercel
+    app = app
+else:
+    # This is for local development
     print("="*60)
-    print("DataViz Pro - Starting Server")
+    print("DataViz Pro - Starting Local Server")
     print("="*60)
     print(f"Python version: {sys.version}")
     print(f"Matplotlib backend: {matplotlib.get_backend()}")
-    print(f"Base directory: {BASE_DIR}")
-    print(f"Static directory: {STATIC_DIR}")
-    print(f"Output directory: {OUTPUT_DIR}")
-    print(f"Temp directory: {TEMP_DIR}")
     print("="*60)
-    
-    # Verify directories exist and are writable
-    for dir_name, dir_path in [("Static", STATIC_DIR), ("Output", OUTPUT_DIR), ("Temp", TEMP_DIR)]:
-        if os.path.exists(dir_path):
-            print(f"✓ {dir_name} directory exists: {dir_path}")
-            if os.access(dir_path, os.W_OK):
-                print(f"✓ {dir_name} directory is writable")
-            else:
-                print(f"✗ WARNING: {dir_name} directory is NOT writable")
-        else:
-            print(f"✗ WARNING: {dir_name} directory does NOT exist")
-    
-    print("="*60)
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    app.run(debug=True, port=5000)
