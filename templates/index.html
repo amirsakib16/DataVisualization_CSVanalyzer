@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataViz Pro - Advanced Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #0d1117;
+            color: #fff;
+        }
+
+        /* Animated Background - Geometric Grid */
+        .background {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: 
+                linear-gradient(90deg, rgba(88, 166, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(rgba(88, 166, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-color: #0d1117;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 50px 50px, 50px 50px; }
+        }
+
+        /* Animated Orbs */
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(88, 166, 255, 0.4), rgba(88, 166, 255, 0) 70%);
+            border-radius: 50%;
+            filter: blur(40px);
+            animation: float 25s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translate(0, 0) scale(1);
+                opacity: 0.3;
+            }
+            25% { 
+                transform: translate(100px, -100px) scale(1.2);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: translate(-50px, -200px) scale(0.9);
+                opacity: 0.4;
+            }
+            75% { 
+                transform: translate(-150px, -50px) scale(1.1);
+                opacity: 0.6;
+            }
+        }
+
+        /* Header */
+        header {
+            background: rgba(13, 17, 23, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(88, 166, 255, 0.2);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #58a6ff, #1f6feb);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: logoSpin 3s ease-in-out infinite;
+            box-shadow: 0 5px 20px rgba(88, 166, 255, 0.4);
+        }
+
+        @keyframes logoSpin {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(5deg) scale(1.1); }
+        }
+
+        .logo h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #58a6ff, #79c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem 1rem;
+            background: rgba(22, 27, 34, 0.6);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(88, 166, 255, 0.2);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #58a6ff, #79c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1400px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(88, 166, 255, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            100% { left: 100%; }
+        }
+
+        .upload-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #58a6ff, #79c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .upload-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(88, 166, 255, 0.3);
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            background: rgba(13, 17, 23, 0.5);
+        }
+
+        .upload-area:hover {
+            border-color: #58a6ff;
+            background: rgba(88, 166, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(88, 166, 255, 0.3);
+        }
+
+        .upload-area.dragover {
+            border-color: #79c0ff;
+            background: rgba(88, 166, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #1f6feb, #58a6ff);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(31, 111, 235, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(31, 111, 235, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Processing Loader */
+        .processing-container {
+            display: none;
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .processing-container.active {
+            display: block;
+        }
+
+        .loader {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: #58a6ff;
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .loader-ring:nth-child(2) {
+            border-top-color: #1f6feb;
+            animation-duration: 2s;
+        }
+
+        .loader-ring:nth-child(3) {
+            border-top-color: #79c0ff;
+            animation-duration: 2.5s;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .processing-text {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .processing-status {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .results-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #58a6ff, #79c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(88, 166, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(88, 166, 255, 0.4);
+            border-color: #58a6ff;
+        }
+
+        .stat-card:hover::before {
+            left: 150%;
+        }
+
+        .stat-card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #58a6ff, #79c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card-label {
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.5rem;
+        }
+
+        /* Plots Grid */
+        .plots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .plot-card {
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plot-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(88, 166, 255, 0.05), rgba(121, 192, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .plot-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            border-color: #58a6ff;
+        }
+
+        .plot-card:hover::after {
+            opacity: 1;
+        }
+
+        .plot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .plot-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #58a6ff, #79c0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #1f6feb, #58a6ff);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(31, 111, 235, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(31, 111, 235, 0.5);
+        }
+
+        .plot-image {
+            width: 100%;
+            border-radius: 15px;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .plot-card:hover .plot-image {
+            transform: scale(1.05);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-stats {
+                display: none;
+            }
+
+            .plots-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+
+            .upload-title {
+                font-size: 2rem;
+            }
+
+            .results-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* Success Message */
+        .success-message {
+            background: linear-gradient(135deg, rgba(46, 160, 67, 0.2), rgba(57, 211, 83, 0.2));
+            border: 1px solid #2ea043;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            margin: 1rem 0;
+            text-align: center;
+            display: none;
+            animation: slideDown 0.5s ease;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, rgba(218, 54, 51, 0.2), rgba(248, 81, 73, 0.2));
+            border: 1px solid #da3633;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            margin: 1rem 0;
+            text-align: center;
+            display: none;
+            animation: shake 0.5s ease;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <h1>DataViz Pro</h1>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="visualizations-count">20</div>
+                    <div class="stat-label">Visualizations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="files-processed">0</div>
+                    <div class="stat-label">Files Processed</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <h2 class="upload-title">Transform Your Data Into Insights</h2>
+            <p class="upload-subtitle">Upload your CSV file and watch the magic happen with 25+ stunning visualizations</p>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drag & Drop your CSV file here</div>
+                <div class="upload-subtext">or click to browse (Max 16MB)</div>
+                <input type="file" id="fileInput" class="file-input" accept=".csv">
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" id="analyzeBtn" disabled>
+                    <span>Analyze Data</span>
+                </button>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                ✓ File uploaded successfully!
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <!-- Processing Section -->
+        <div class="processing-container" id="processingContainer">
+            <div class="loader">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+            </div>
+            <div class="processing-text">Analyzing Your Data...</div>
+            <div class="processing-status" id="processingStatus">Generating visualizations</div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2 class="results-title">Your Data Insights</h2>
+            </div>
+
+            <!-- Statistics Grid -->
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <!-- Plots Grid -->
+            <div class="plots-grid" id="plotsGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Create animated orbs
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const colors = [
+                'rgba(88, 166, 255, 0.4)',
+                'rgba(31, 111, 235, 0.3)',
+                'rgba(121, 192, 255, 0.35)'
+            ];
+            
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 300 + 200;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.background = `radial-gradient(circle, ${colors[i % colors.length]}, transparent 70%)`;
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (Math.random() * 15 + 20) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // File upload handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        let selectedFile = null;
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.name.endsWith('.csv')) {
+                showError('Please select a CSV file');
+                return;
+            }
+            if (file.size > 16 * 1024 * 1024) {
+                showError('File size must be less than 16MB');
+                return;
+            }
+            
+            selectedFile = file;
+            analyzeBtn.disabled = false;
+            successMessage.classList.add('active');
+            errorMessage.classList.remove('active');
+            
+            uploadArea.querySelector('.upload-text').textContent = `📄 ${file.name}`;
+            uploadArea.querySelector('.upload-subtext').textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = '✗ ' + message;
+            errorMessage.classList.add('active');
+            successMessage.classList.remove('active');
+        }
+
+        // Analyze button
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const uploadSection = document.getElementById('uploadSection');
+            const processingContainer = document.getElementById('processingContainer');
+            const resultsSection = document.getElementById('resultsSection');
+
+            uploadSection.style.display = 'none';
+            processingContainer.classList.add('active');
+            resultsSection.classList.remove('active');
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const statusMessages = [
+                'Reading your data...',
+                'Calculating statistics...',
+                'Generating correlation matrix...',
+                'Creating distribution plots...',
+                'Building scatter plots...',
+                'Rendering visualizations...',
+                'Finalizing insights...'
+            ];
+
+            let messageIndex = 0;
+            const statusInterval = setInterval(() => {
+                document.getElementById('processingStatus').textContent = statusMessages[messageIndex];
+                messageIndex = (messageIndex + 1) % statusMessages.length;
+            }, 1500);
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                clearInterval(statusInterval);
+
+                if (data.success) {
+                    displayResults(data);
+                    
+                    // Update files processed counter
+                    const counter = document.getElementById('files-processed');
+                    counter.textContent = parseInt(counter.textContent) + 1;
+                } else {
+                    throw new Error(data.error || 'Analysis failed');
+                }
+            } catch (error) {
+                clearInterval(statusInterval);
+                processingContainer.classList.remove('active');
+                uploadSection.style.display = 'block';
+                showError(error.message);
+            }
+        });
+
+        function displayResults(data) {
+            const processingContainer = document.getElementById('processingContainer');
+            const resultsSection = document.getElementById('resultsSection');
+            const statsGrid = document.getElementById('statsGrid');
+            const plotsGrid = document.getElementById('plotsGrid');
+
+            processingContainer.classList.remove('active');
+            resultsSection.classList.add('active');
+
+            // Display statistics
+            statsGrid.innerHTML = `
+                <div class="stat-card fade-in" style="animation-delay: 0.1s">
+                    <div class="stat-card-icon">📊</div>
+                    <div class="stat-card-value">${data.stats.rows.toLocaleString()}</div>
+                    <div class="stat-card-label">Total Rows</div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.2s">
+                    <div class="stat-card-icon">📋</div>
+                    <div class="stat-card-value">${data.stats.columns}</div>
+                    <div class="stat-card-label">Columns</div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.3s">
+                    <div class="stat-card-icon">🔢</div>
+                    <div class="stat-card-value">${data.stats.numeric_cols}</div>
+                    <div class="stat-card-label">Numeric Columns</div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.4s">
+                    <div class="stat-card-icon">📝</div>
+                    <div class="stat-card-value">${data.stats.categorical_cols}</div>
+                    <div class="stat-card-label">Categorical Columns</div>
+                </div>
+                <div class="stat-card fade-in" style="animation-delay: 0.5s">
+                    <div class="stat-card-icon">❓</div>
+                    <div class="stat-card-value">${data.stats.missing_values}</div>
+                    <div class="stat-card-label">Missing Values</div>
+                </div>
+            `;
+
+            // Display plots
+            plotsGrid.innerHTML = '';
+            data.plots.forEach((plot, index) => {
+                const plotCard = document.createElement('div');
+                plotCard.className = 'plot-card fade-in';
+                plotCard.style.animationDelay = (0.1 * (index + 1)) + 's';
+                plotCard.innerHTML = `
+                    <div class="plot-header">
+                        <div class="plot-title">${plot[0]}</div>
+                        <button class="download-btn" onclick="downloadPlot('${plot[1]}')">
+                            Download
+                        </button>
+                    </div>
+                    <img src="/static/outputs/${plot[1]}" alt="${plot[0]}" class="plot-image">
+                `;
+                plotsGrid.appendChild(plotCard);
+            });
+
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function downloadPlot(filename) {
+            window.location.href = `/download/${filename}`;
+        }
+    </script>
+</body>
+</html>
