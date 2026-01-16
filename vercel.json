@@ -13,6 +13,7 @@
         }
     ],
     "env": {
+        "MPLBACKEND": "Agg",
         "MPLCONFIGDIR": "/tmp/matplotlib"
     },
     "functions": {

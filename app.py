@@ -4,12 +4,15 @@ import sys
 import io
 import base64
 
-# Set matplotlib backend BEFORE importing pyplot
+# Critical: Set backend before ANY matplotlib imports
+os.environ['MPLBACKEND'] = 'Agg'
+os.environ['MPLCONFIGDIR'] = '/tmp/matplotlib'
+
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg', force=True)
 import matplotlib.pyplot as plt
 
-# Import other libraries
+# Now import other libraries
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -17,212 +20,284 @@ from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
-# Set environment variables for matplotlib
-os.environ['MPLCONFIGDIR'] = '/tmp/matplotlib'
+# Disable interactive mode
 plt.ioff()
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
 
-# For Vercel serverless - use /tmp directory
+# Create temp directory
 TEMP_DIR = '/tmp/matplotlib'
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 def generate_plot_base64(fig):
-    """Convert matplotlib figure to base64 string for inline display"""
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png', dpi=100, bbox_inches='tight', facecolor='white')
-    buf.seek(0)
-    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close(fig)
-    buf.close()
-    return f"data:image/png;base64,{img_base64}"
+    """Convert matplotlib figure to base64 string"""
+    try:
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', dpi=100, bbox_inches='tight', 
+                   facecolor='white', edgecolor='none')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        plt.close(fig)
+        buf.close()
+        return f"data:image/png;base64,{img_base64}"
+    except Exception as e:
+        print(f"Error generating base64: {e}")
+        plt.close(fig)
+        return None
+
+def setup_plot_style():
+    """Setup matplotlib style - call before each plot"""
+    try:
+        sns.set_style("whitegrid")
+        plt.rcParams.update({
+            'figure.facecolor': 'white',
+            'axes.facecolor': 'white',
+            'savefig.facecolor': 'white',
+            'text.color': 'black',
+            'axes.labelcolor': 'black',
+            'xtick.color': 'black',
+            'ytick.color': 'black',
+            'grid.color': '#e0e0e0',
+            'font.size': 10,
+            'figure.autolayout': False
+        })
+    except Exception as e:
+        print(f"Error setting style: {e}")
 
 def generate_visualizations(df):
-    """Generate all visualizations from the dataframe"""
+    """Generate visualizations from dataframe"""
     plots = []
     
-    try:
-        # Force matplotlib to use Agg backend
-        plt.switch_backend('Agg')
-        
-        # Set style
-        sns.set_style("whitegrid")
-        plt.rcParams['figure.facecolor'] = 'white'
-        plt.rcParams['axes.facecolor'] = 'white'
-        plt.rcParams['text.color'] = 'black'
-        plt.rcParams['axes.labelcolor'] = 'black'
-        plt.rcParams['xtick.color'] = 'black'
-        plt.rcParams['ytick.color'] = 'black'
-        plt.rcParams['grid.color'] = '#e0e0e0'
-        plt.rcParams['font.size'] = 10
-        
-    except Exception as e:
-        print(f"Error setting matplotlib config: {e}")
+    # Limit dataframe size for faster processing
+    if len(df) > 10000:
+        df = df.sample(n=10000, random_state=42)
+        print(f"Sampled to 10000 rows for performance")
     
-    # Get numeric and categorical columns
+    # Get column types
     numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
     
-    print(f"Found {len(numeric_cols)} numeric and {len(categorical_cols)} categorical columns")
+    print(f"Numeric columns: {len(numeric_cols)}, Categorical: {len(categorical_cols)}")
     
     # 1. Correlation Heatmap
     if len(numeric_cols) >= 2:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(10, 8))
-            corr = df[numeric_cols].corr()
+            
+            # Limit to first 10 numeric columns
+            cols_to_use = numeric_cols[:min(10, len(numeric_cols))]
+            corr = df[cols_to_use].corr()
+            
             sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", 
                        linewidths=0.5, linecolor="gray", square=True,
                        cbar_kws={"shrink": 0.8}, ax=ax)
             ax.set_title('Correlation Heatmap', fontsize=16, fontweight='bold', pad=20)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('Correlation Heatmap', img_data))
-            print(f"Generated: Correlation Heatmap")
+            if img_data:
+                plots.append(('Correlation Heatmap', img_data))
+                print("✓ Generated: Correlation Heatmap")
         except Exception as e:
-            print(f"Error generating heatmap: {e}")
+            print(f"✗ Error generating heatmap: {e}")
+            plt.close('all')
     
     # 2. Distribution Histogram
     if len(numeric_cols) >= 1:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(12, 6))
+            
             col = numeric_cols[0]
-            sns.histplot(df[col].dropna(), bins=30, kde=True, color='skyblue', 
+            data = df[col].dropna()
+            
+            sns.histplot(data, bins=30, kde=True, color='skyblue', 
                         edgecolor='black', alpha=0.7, ax=ax)
-            mean_val = df[col].mean()
-            median_val = df[col].median()
-            ax.axvline(mean_val, color='red', linestyle='--', linewidth=2, label=f'Mean: {mean_val:.2f}')
-            ax.axvline(median_val, color='blue', linestyle='-.', linewidth=2, label=f'Median: {median_val:.2f}')
+            
+            mean_val = data.mean()
+            median_val = data.median()
+            ax.axvline(mean_val, color='red', linestyle='--', linewidth=2, 
+                      label=f'Mean: {mean_val:.2f}')
+            ax.axvline(median_val, color='blue', linestyle='-.', linewidth=2, 
+                      label=f'Median: {median_val:.2f}')
+            
             ax.set_title(f'Distribution of {col}', fontsize=16, fontweight='bold', pad=20)
             ax.set_xlabel(col, fontsize=12)
             ax.set_ylabel('Frequency', fontsize=12)
             ax.legend(fontsize=10)
             ax.grid(axis='y', alpha=0.3)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('Distribution Histogram', img_data))
-            print(f"Generated: Distribution Histogram")
+            if img_data:
+                plots.append(('Distribution Histogram', img_data))
+                print("✓ Generated: Distribution Histogram")
         except Exception as e:
-            print(f"Error generating histogram: {e}")
+            print(f"✗ Error generating histogram: {e}")
+            plt.close('all')
     
     # 3. Box Plot
     if len(numeric_cols) >= 1:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(12, 6))
+            
             cols_to_plot = numeric_cols[:min(5, len(numeric_cols))]
             df[cols_to_plot].boxplot(patch_artist=True, ax=ax)
+            
             ax.set_title('Box Plot - Outlier Detection', fontsize=16, fontweight='bold', pad=20)
             ax.set_ylabel('Values', fontsize=12)
             plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
             ax.grid(axis='y', alpha=0.3)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('Box Plot', img_data))
-            print(f"Generated: Box Plot")
+            if img_data:
+                plots.append(('Box Plot', img_data))
+                print("✓ Generated: Box Plot")
         except Exception as e:
-            print(f"Error generating boxplot: {e}")
+            print(f"✗ Error generating boxplot: {e}")
+            plt.close('all')
     
     # 4. Scatter Plot
     if len(numeric_cols) >= 2:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(10, 8))
+            
             x_col, y_col = numeric_cols[0], numeric_cols[1]
-            colors = np.random.rand(len(df))
-            scatter = ax.scatter(df[x_col], df[y_col], c=colors, s=50, 
+            
+            # Sample if too many points
+            plot_df = df[[x_col, y_col]].dropna()
+            if len(plot_df) > 1000:
+                plot_df = plot_df.sample(n=1000, random_state=42)
+            
+            colors = np.random.rand(len(plot_df))
+            scatter = ax.scatter(plot_df[x_col], plot_df[y_col], c=colors, s=50, 
                        cmap='viridis', alpha=0.6, edgecolors='black', linewidth=0.5)
+            
             plt.colorbar(scatter, ax=ax, label='Color Scale')
             ax.set_title(f'Scatter Plot: {x_col} vs {y_col}', fontsize=16, fontweight='bold', pad=20)
             ax.set_xlabel(x_col, fontsize=12)
             ax.set_ylabel(y_col, fontsize=12)
             ax.grid(True, alpha=0.3)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('Scatter Plot', img_data))
-            print(f"Generated: Scatter Plot")
+            if img_data:
+                plots.append(('Scatter Plot', img_data))
+                print("✓ Generated: Scatter Plot")
         except Exception as e:
-            print(f"Error generating scatter plot: {e}")
+            print(f"✗ Error generating scatter plot: {e}")
+            plt.close('all')
     
     # 5. Bar Chart
     if len(categorical_cols) >= 1:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(12, 6))
+            
             col = categorical_cols[0]
             value_counts = df[col].value_counts().head(10)
+            
             colors = plt.cm.viridis(np.linspace(0.2, 0.8, len(value_counts)))
             bars = ax.bar(range(len(value_counts)), value_counts.values, 
                           color=colors, edgecolor='black', linewidth=1.2)
+            
             ax.set_xticks(range(len(value_counts)))
             ax.set_xticklabels(value_counts.index, rotation=45, ha='right')
             ax.set_title(f'Top Categories - {col}', fontsize=16, fontweight='bold', pad=20)
             ax.set_ylabel('Count', fontsize=12)
             ax.grid(axis='y', alpha=0.3)
+            
             for bar in bars:
                 height = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2., height,
                         f'{int(height)}', ha='center', va='bottom', fontsize=10)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('Bar Chart', img_data))
-            print(f"Generated: Bar Chart")
+            if img_data:
+                plots.append(('Bar Chart', img_data))
+                print("✓ Generated: Bar Chart")
         except Exception as e:
-            print(f"Error generating bar chart: {e}")
+            print(f"✗ Error generating bar chart: {e}")
+            plt.close('all')
     
     # 6. Line Plot
     if len(numeric_cols) >= 1:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(12, 6))
+            
             col = numeric_cols[0]
             data_sample = df[col].dropna().head(100)
+            
             ax.plot(range(len(data_sample)), data_sample.values, 
                     marker='o', linestyle='-', linewidth=2, markersize=4, color='purple')
+            
             ax.set_title(f'Line Plot - {col}', fontsize=16, fontweight='bold', pad=20)
             ax.set_xlabel('Index', fontsize=12)
             ax.set_ylabel(col, fontsize=12)
             ax.grid(True, alpha=0.3)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('Line Plot', img_data))
-            print(f"Generated: Line Plot")
+            if img_data:
+                plots.append(('Line Plot', img_data))
+                print("✓ Generated: Line Plot")
         except Exception as e:
-            print(f"Error generating line plot: {e}")
+            print(f"✗ Error generating line plot: {e}")
+            plt.close('all')
     
     # 7. Violin Plot
     if len(numeric_cols) >= 2:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(12, 6))
+            
             cols_to_plot = numeric_cols[:min(4, len(numeric_cols))]
             data_to_plot = [df[col].dropna().values for col in cols_to_plot]
+            
             parts = ax.violinplot(data_to_plot, showmeans=True, showmedians=True)
             ax.set_xticks(range(1, len(cols_to_plot) + 1))
             ax.set_xticklabels(cols_to_plot, rotation=45, ha='right')
             ax.set_title('Violin Plot - Distribution Comparison', fontsize=16, fontweight='bold', pad=20)
             ax.set_ylabel('Values', fontsize=12)
             ax.grid(axis='y', alpha=0.3)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('Violin Plot', img_data))
-            print(f"Generated: Violin Plot")
+            if img_data:
+                plots.append(('Violin Plot', img_data))
+                print("✓ Generated: Violin Plot")
         except Exception as e:
-            print(f"Error generating violin plot: {e}")
+            print(f"✗ Error generating violin plot: {e}")
+            plt.close('all')
     
     # 8. KDE Plot
     if len(numeric_cols) >= 1:
         try:
+            setup_plot_style()
             fig, ax = plt.subplots(figsize=(12, 6))
+            
             cols = numeric_cols[:min(3, len(numeric_cols))]
             for col in cols:
-                sns.kdeplot(df[col].dropna(), fill=True, alpha=0.5, linewidth=2, label=col, ax=ax)
+                data = df[col].dropna()
+                if len(data) > 0:
+                    sns.kdeplot(data, fill=True, alpha=0.5, linewidth=2, label=col, ax=ax)
+            
             ax.set_title('KDE Plot - Density Distribution', fontsize=16, fontweight='bold', pad=20)
             ax.set_xlabel('Value', fontsize=12)
             ax.set_ylabel('Density', fontsize=12)
             ax.legend()
             ax.grid(True, alpha=0.3)
-            plt.tight_layout()
+            
             img_data = generate_plot_base64(fig)
-            plots.append(('KDE Plot', img_data))
-            print(f"Generated: KDE Plot")
+            if img_data:
+                plots.append(('KDE Plot', img_data))
+                print("✓ Generated: KDE Plot")
         except Exception as e:
-            print(f"Error generating KDE plot: {e}")
+            print(f"✗ Error generating KDE plot: {e}")
+            plt.close('all')
+    
+    # Close all remaining figures
+    plt.close('all')
     
     print(f"Successfully generated {len(plots)} plots")
     return plots
@@ -234,7 +309,9 @@ def index():
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
+        print("=" * 60)
         print("Starting analysis...")
+        print(f"Matplotlib backend: {matplotlib.get_backend()}")
         
         if 'file' not in request.files:
             return jsonify({'success': False, 'error': 'No file uploaded'}), 400
@@ -258,6 +335,10 @@ def analyze():
         # Generate visualizations
         print("Generating visualizations...")
         plots = generate_visualizations(df)
+        
+        if len(plots) == 0:
+            return jsonify({'success': False, 'error': 'No visualizations could be generated'}), 500
+        
         print(f"Generated {len(plots)} plots successfully")
         
         # Get basic stats
@@ -270,6 +351,8 @@ def analyze():
         }
         
         print(f"Returning response with {len(plots)} plots")
+        print("=" * 60)
+        
         return jsonify({
             'success': True,
             'plots': plots,
@@ -283,15 +366,4 @@ def analyze():
         return jsonify({'success': False, 'error': f'Server error: {str(e)}'}), 500
 
 # For Vercel serverless
-if __name__ != '__main__':
-    # This is for Vercel
-    app = app
-else:
-    # This is for local development
-    print("="*60)
-    print("DataViz Pro - Starting Local Server")
-    print("="*60)
-    print(f"Python version: {sys.version}")
-    print(f"Matplotlib backend: {matplotlib.get_backend()}")
-    print("="*60)
-    app.run(debug=True, port=5000)
+app = app
