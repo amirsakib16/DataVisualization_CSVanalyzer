@@ -11,15 +11,5 @@
             "src": "/(.*)",
             "dest": "app.py"
         }
-    ],
-    "env": {
-        "MPLBACKEND": "Agg",
-        "MPLCONFIGDIR": "/tmp/matplotlib"
-    },
-    "functions": {
-        "app.py": {
-            "maxDuration": 60,
-            "memory": 3008
-        }
-    }
+    ]
 }

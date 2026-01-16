@@ -632,7 +632,7 @@
             </div>
             <div class="header-stats">
                 <div class="stat-item">
-                    <div class="stat-value" id="visualizations-count">25</div>
+                    <div class="stat-value" id="visualizations-count">20</div>
                     <div class="stat-label">Visualizations</div>
                 </div>
                 <div class="stat-item">
@@ -659,7 +659,7 @@
             
             <div style="text-align: center;">
                 <button class="btn" id="analyzeBtn" disabled>
-                    <span>🚀 Analyze Data</span>
+                    <span>Analyze Data</span>
                 </button>
             </div>
 
@@ -676,14 +676,14 @@
                 <div class="loader-ring"></div>
                 <div class="loader-ring"></div>
             </div>
-            <div class="processing-text">🔮 Analyzing Your Data...</div>
+            <div class="processing-text">Analyzing Your Data...</div>
             <div class="processing-status" id="processingStatus">Generating visualizations</div>
         </div>
 
         <!-- Results Section -->
         <div class="results-section" id="resultsSection">
             <div class="results-header">
-                <h2 class="results-title">✨ Your Data Insights</h2>
+                <h2 class="results-title">Your Data Insights</h2>
             </div>
 
             <!-- Statistics Grid -->
@@ -883,11 +883,11 @@
                 plotCard.innerHTML = `
                     <div class="plot-header">
                         <div class="plot-title">${plot[0]}</div>
-                        <button class="download-btn" onclick="downloadPlot('${plot[0]}', '${plot[1]}')">
-                            💾 Download
+                        <button class="download-btn" onclick="downloadPlot('${plot[1]}')">
+                            Download
                         </button>
                     </div>
-                    <img src="${plot[1]}" alt="${plot[0]}" class="plot-image">
+                    <img src="/static/outputs/${plot[1]}" alt="${plot[0]}" class="plot-image">
                 `;
                 plotsGrid.appendChild(plotCard);
             });
@@ -896,14 +896,8 @@
             resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        function downloadPlot(plotName, base64Data) {
-            // Extract base64 data
-            const link = document.createElement('a');
-            link.href = base64Data;
-            link.download = `${plotName.replace(/\s+/g, '_')}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function downloadPlot(filename) {
+            window.location.href = `/download/${filename}`;
         }
     </script>
 </body>
