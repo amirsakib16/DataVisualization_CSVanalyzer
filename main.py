@@ -349,47 +349,6 @@ def generate_visualizations(df, output_dir):
         except Exception as e:
             print(f"Error generating Strip Plot: {e}")
 
-    
-# 16. Swarm Plot
-    if len(categorical_cols) >= 1 and len(numeric_cols) >= 1:
-        try:
-            cat_col = categorical_cols[0]
-            num_col = numeric_cols[0]
-            sample_df = df.sample(n=min(300, len(df)))
-            fig, ax = plt.subplots(figsize=(12, 7), facecolor='white')
-
-            sns.swarmplot(
-            x=cat_col,
-            y=num_col,
-            data=sample_df,
-            size=6,
-            palette='Set2',
-            alpha=0.8,
-            ax=ax
-        )
-
-            ax.set_title(
-            f'Swarm Plot: {cat_col} vs {num_col}',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel(cat_col, fontsize=12)
-            ax.set_ylabel(num_col, fontsize=12)
-            ax.tick_params(axis='x', rotation=45)
-            ax.grid(axis='y', linestyle='--', alpha=0.3)
-
-            plt.tight_layout()
-            filename = f'swarm_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('Swarm Plot', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating Swarm Plot: {e}")
 
     
 
@@ -486,10 +445,6 @@ def generate_visualizations(df, output_dir):
 
 
 
-
-
-    
-
 # 24. KDE Plot 2D
     if len(numeric_cols) >= 2:
         try:
@@ -530,46 +485,7 @@ def generate_visualizations(df, output_dir):
 
 
 
-# 34. 3D Scatter Plot
-    if len(numeric_cols) >= 3:
-        try:
-            fig = plt.figure(figsize=(12, 9), facecolor='white')
-            ax = fig.add_subplot(111, projection='3d')
 
-            scatter = ax.scatter(
-            df[numeric_cols[0]],
-            df[numeric_cols[1]],
-            df[numeric_cols[2]],
-            c=df[numeric_cols[0]],
-            s=100,
-            cmap='plasma',
-            alpha=0.7,
-            edgecolors='black',
-            linewidth=0.5
-        )
-
-            ax.set_title(
-            '3D Scatter Plot',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel(numeric_cols[0], fontsize=12)
-            ax.set_ylabel(numeric_cols[1], fontsize=12)
-            ax.set_zlabel(numeric_cols[2], fontsize=12)
-            fig.colorbar(scatter, ax=ax, shrink=0.5, label='Color scale')
-
-            plt.tight_layout()
-            filename = f'scatter3d_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('3D Scatter Plot', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating 3D Scatter Plot: {e}")
 
     
     return plots
