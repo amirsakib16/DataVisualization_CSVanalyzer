@@ -1,4 +1,4 @@
-# 📊 DataViz Pro
+#  DataViz Pro
 
 <div align="center">
 
@@ -9,28 +9,35 @@
 
 **A powerful, production-ready data visualization platform that transforms CSV files into stunning, publication-quality visualizations**
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Examples](#-visualization-gallery) • [Contributing](#-contributing)
 
 </div>
 
 ---
+<div align="center">
 
-## 🎯 Overview
-
-DataViz Pro is an enterprise-grade web application that automatically generates comprehensive data visualizations from CSV files. Built with Flask and powered by industry-standard libraries like Matplotlib, Seaborn, and Pandas, it delivers professional-quality charts with zero configuration required.
-
-### ✨ Why DataViz Pro?
-
-- 🚀 **Zero Configuration** - Upload CSV, get instant visualizations
-- 📈 **14+ Chart Types** - From basic histograms to advanced 2D KDE plots
-- 🎨 **Publication Ready** - High-quality outputs suitable for reports and presentations
-- ⚡ **Lightning Fast** - Optimized rendering engine with matplotlib's Agg backend
-- 🔒 **Secure** - 16MB file size limits and robust error handling
-- 📱 **Responsive** - Works seamlessly across all devices
+[![Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-Try_Now-success?style=for-the-badge&labelColor=4a148c&color=00e676)](https://datavizpro.herokuapp.com)
+[![Watch Demo](https://img.shields.io/badge/▶️_VIDEO_DEMO-Watch-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/demo)
+[![Download](https://img.shields.io/badge/⬇️_DOWNLOAD-Latest_Release-blue?style=for-the-badge&logo=github)](https://github.com/yourusername/dataviz-pro/releases)
+</div>
 
 ---
 
-## 🌟 Features
+## Overview
+
+DataViz Pro is an enterprise-grade web application that automatically generates comprehensive data visualizations from CSV files. Built with Flask and powered by industry-standard libraries like Matplotlib, Seaborn, and Pandas, it delivers professional-quality charts with zero configuration required.
+
+###  Why DataViz Pro?
+
+-  **Zero Configuration** - Upload CSV, get instant visualizations
+-  **14+ Chart Types** - From basic histograms to advanced 2D KDE plots
+-  **Publication Ready** - High-quality outputs suitable for reports and presentations
+-  **Lightning Fast** - Optimized rendering engine with matplotlib's Agg backend
+-  **Secure** - 16MB file size limits and robust error handling
+-  **Responsive** - Works seamlessly across all devices
+
+---
+
+##  Features
 
 ### Core Capabilities
 
@@ -46,7 +53,7 @@ DataViz Pro is an enterprise-grade web application that automatically generates 
 ### Visualization Types
 
 <details>
-<summary><b>📊 Statistical Plots (8 types)</b></summary>
+<summary><b> Statistical Plots (8 types)</b></summary>
 
 - **Correlation Heatmap** - Identify relationships between variables
 - **Distribution Histogram** - Understand data spread with KDE overlay
@@ -60,7 +67,7 @@ DataViz Pro is an enterprise-grade web application that automatically generates 
 </details>
 
 <details>
-<summary><b>📈 Relationship Plots (3 types)</b></summary>
+<summary><b>Relationship Plots (3 types)</b></summary>
 
 - **Scatter Plot** - Explore correlations with color mapping
 - **Line Plot** - Trend analysis over indices
@@ -69,7 +76,7 @@ DataViz Pro is an enterprise-grade web application that automatically generates 
 </details>
 
 <details>
-<summary><b>📋 Categorical Plots (3 types)</b></summary>
+<summary><b> Categorical Plots (3 types)</b></summary>
 
 - **Bar Chart** - Top categories with value annotations
 - **Count Plot** - Frequency distribution of categories
@@ -79,7 +86,7 @@ DataViz Pro is an enterprise-grade web application that automatically generates 
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -120,7 +127,7 @@ docker run -p 5000:5000 dataviz-pro
 
 ---
 
-## 📦 Dependencies
+##  Dependencies
 
 ```python
 Flask==3.0.0
@@ -134,7 +141,7 @@ gunicorn==21.2.0
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### Basic Workflow
 
@@ -184,7 +191,7 @@ for title, filename in plots:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 DataVisualization_CSVanalyzer/
@@ -205,7 +212,7 @@ DataVisualization_CSVanalyzer/
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -230,7 +237,7 @@ fig.savefig(filepath, dpi=300)  # Default: 100
 
 ---
 
-## 🔧 Advanced Features
+##  Advanced Features
 
 ### Custom Plot Generation
 
@@ -262,7 +269,7 @@ for csv_file in csv_files:
 
 ---
 
-## 📊 Performance
+## Performance
 
 | Metric | Value |
 |--------|-------|
@@ -274,18 +281,18 @@ for csv_file in csv_files:
 
 ---
 
-## 🛡️ Security Features
+##  Security Features
 
-- ✅ File type validation (CSV only)
-- ✅ Size limit enforcement (16MB)
-- ✅ Path traversal protection
-- ✅ Input sanitization
-- ✅ Error message sanitization
-- ✅ Secure file handling
+-  File type validation (CSV only)
+-  Size limit enforcement (16MB)
+-  Path traversal protection
+-  Input sanitization
+-  Error message sanitization
+-  Secure file handling
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 <details>
 <summary><b>Module not found errors</b></summary>
@@ -316,7 +323,7 @@ chmod 777 /tmp/matplotlib
 
 ---
 
-## 🗺️ Roadmap
+##  Roadmap
 
 - [ ] **v2.0** - Interactive plots with Plotly
 - [ ] **v2.1** - Excel and JSON support
@@ -327,7 +334,7 @@ chmod 777 /tmp/matplotlib
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 We welcome contributions! Please follow these steps:
 
@@ -353,19 +360,19 @@ flake8 app.py
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 👥 Authors
+##  Authors
 
 - **Amir Sakib Saad** - [GitHub](https://github.com/amirsakib16)
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Matplotlib team for the robust plotting library
 - Seaborn for beautiful statistical visualizations
