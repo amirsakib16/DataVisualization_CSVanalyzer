@@ -301,89 +301,9 @@ def generate_visualizations(df, output_dir):
             print(f"Error generating Box Plot with Swarm: {e}")
 
     
-# 13. Violin Plot
-    if len(categorical_cols) >= 1 and len(numeric_cols) >= 1:
-        try:
-            cat_col = categorical_cols[0]
-            num_col = numeric_cols[0]
 
-            fig, ax = plt.subplots(figsize=(12, 7), facecolor='white')
 
-            sns.violinplot(
-                x=cat_col,
-                y=num_col,
-                data=df,
-                palette='mako',
-                ax=ax,
-                inner='quartile'
-        )
 
-            ax.set_title(
-            f'Violin Plot: {cat_col} vs {num_col}',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel(cat_col, fontsize=12)
-            ax.set_ylabel(num_col, fontsize=12)
-            ax.tick_params(axis='x', rotation=45)
-            ax.grid(axis='y', linestyle='--', alpha=0.3)
-
-            plt.tight_layout()
-            filename = f'violin_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('Violin Plot', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating Violin Plot: {e}")
-
-    
-# 14. Split Violin Plot
-    if len(categorical_cols) >= 2 and len(numeric_cols) >= 1:
-        try:
-            cat_col1 = categorical_cols[0]
-            cat_col2 = categorical_cols[1]
-            num_col = numeric_cols[0]
-
-            fig, ax = plt.subplots(figsize=(14, 7), facecolor='white')
-            sns.violinplot(
-            x=cat_col1,
-            y=num_col,
-            hue=cat_col2,
-            data=df,
-            split=True,
-            palette='coolwarm',
-            ax=ax,
-            inner='quart'
-        )
-
-            ax.set_title(
-            f'Split Violin Plot: {cat_col1} vs {num_col} by {cat_col2}',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel(cat_col1, fontsize=12)
-            ax.set_ylabel(num_col, fontsize=12)
-            ax.tick_params(axis='x', rotation=45)
-            ax.grid(axis='y', linestyle='--', alpha=0.3)
-            ax.legend(title=cat_col2)
-
-            plt.tight_layout()
-            filename = f'split_violin_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('Split Violin Plot', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating Split Violin Plot: {e}")
 
     
 # 15. Strip Plot
@@ -472,47 +392,7 @@ def generate_visualizations(df, output_dir):
             print(f"Error generating Swarm Plot: {e}")
 
     
-# 17. Point Plot
-    if len(categorical_cols) >= 1 and len(numeric_cols) >= 1:
-        try:
-            cat_col = categorical_cols[0]
-            num_col = numeric_cols[0]
 
-            fig, ax = plt.subplots(figsize=(12, 6), facecolor='white')
-
-            sns.pointplot(
-            x=cat_col,
-            y=num_col,
-            data=df,
-            ax=ax,
-            markers='D',
-            linestyles='--',
-            palette='Dark2',
-            ci=95
-        )
-
-            ax.set_title(
-            f'Point Plot: {cat_col} vs {num_col}',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel(cat_col, fontsize=12)
-            ax.set_ylabel(num_col, fontsize=12)
-            ax.tick_params(axis='x', rotation=45)
-            ax.grid(True, linestyle='--', alpha=0.3)
-
-            plt.tight_layout()
-            filename = f'point_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('Point Plot', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating Point Plot: {e}")
 
     # 18. Count Plot
     if len(categorical_cols) >= 1:
@@ -602,122 +482,13 @@ def generate_visualizations(df, output_dir):
             print(f"Error generating Area Plot: {e}")
 
     
-# 20. Stacked Area Plot
-    if len(numeric_cols) >= 2:
-        try:
-            fig, ax = plt.subplots(figsize=(12, 7), facecolor='white')
 
-            cols = numeric_cols[:3]  # take top 3 numeric columns
-            colors = plt.cm.viridis(np.linspace(0.3, 0.8, len(cols)))
-            ax.stackplot(
-            df.index,
-            *[df[col] for col in cols],
-            labels=cols,
-            colors=colors,
-            alpha=0.85
-        )
 
-            ax.set_title(
-            'Stacked Area Plot',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel('Index', fontsize=12)
-            ax.set_ylabel('Values', fontsize=12)
-            ax.legend(loc='upper left')
-            ax.grid(axis='y', linestyle='--', alpha=0.3)
-
-            plt.tight_layout()
-            filename = f'stacked_area_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('Stacked Area Plot', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating Stacked Area Plot: {e}")
 
 
 
 
     
-# 21. Stem Plot
-    if len(numeric_cols) >= 1:
-        try:
-            fig, ax = plt.subplots(figsize=(10, 5), facecolor='white')
-
-            x = df.index[:30]
-            y = df[numeric_cols[0]].iloc[:30]
-
-            markerline, stemlines, baseline = ax.stem(x, y, linefmt='C1-', markerfmt='o', basefmt='C3-')
-            plt.setp(markerline, markersize=10, markerfacecolor='orange', markeredgecolor='red')
-            plt.setp(stemlines, linewidth=2, linestyle='--', color='purple')
-
-            ax.set_title(
-            f'Stem Plot: {numeric_cols[0]}',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel('Index', fontsize=12)
-            ax.set_ylabel(numeric_cols[0], fontsize=12)
-            ax.grid(True, linestyle='--', alpha=0.3)
-
-            plt.tight_layout()
-            filename = f'stem_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('Stem Plot', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating Stem Plot: {e}")
-
-    
-# 23. KDE Plot 1D
-    if len(numeric_cols) >= 1:
-        try:
-            fig, ax = plt.subplots(figsize=(10, 6), facecolor='white')
-
-        # Plot top 3 numeric columns
-            for col in numeric_cols[:3]:
-                sns.kdeplot(
-                df[col].dropna(),
-                fill=True,
-                alpha=0.5,
-                linewidth=2.5,
-                label=col,
-                ax=ax
-            )
-
-            ax.set_title(
-            'KDE Plot 1D - Density Estimation',
-            fontsize=16,
-            fontweight='bold',
-            pad=20
-        )
-            ax.set_xlabel('Value', fontsize=12)
-            ax.set_ylabel('Density', fontsize=12)
-            ax.legend()
-            ax.grid(True, linestyle='--', alpha=0.3)
-
-            plt.tight_layout()
-            filename = f'kde1d_{timestamp}.png'
-            filepath = os.path.join(output_dir, filename)
-            fig.savefig(filepath, dpi=100, bbox_inches='tight', facecolor='white')
-            plt.close(fig)
-
-            plots.append(('KDE Plot 1D', filename))
-            print(f"Generated: {filename}")
-
-        except Exception as e:
-            print(f"Error generating KDE Plot 1D: {e}")
-
 
 # 24. KDE Plot 2D
     if len(numeric_cols) >= 2:
