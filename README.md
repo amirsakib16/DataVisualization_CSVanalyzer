@@ -15,9 +15,8 @@
 ---
 <div align="center">
 
-[![Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-Try_Now-success?style=for-the-badge&labelColor=4a148c&color=00e676)](https://datavizpro.herokuapp.com)
-[![Watch Demo](https://img.shields.io/badge/▶️_VIDEO_DEMO-Watch-red?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/demo)
-[![Download](https://img.shields.io/badge/⬇️_DOWNLOAD-Latest_Release-blue?style=for-the-badge&logo=github)](https://github.com/yourusername/dataviz-pro/releases)
+[![Live Demo](https://img.shields.io/badge/🚀_LIVE_DEMO-Try_Now-success?style=for-the-badge&labelColor=4a148c&color=00e676)](https://datavisualization-csvanalyzer-1.onrender.com/)
+[![Watch Demo](https://img.shields.io/badge/▶️_VIDEO_DEMO-Watch-red?style=for-the-badge&logo=youtube&logoColor=white)](https://datavisualization-csvanalyzer-1.onrender.com/)
 </div>
 
 ---
